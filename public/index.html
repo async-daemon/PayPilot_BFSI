@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="UTF-8" /><title>PayPilot</title></head>
+<body>
+<script>
+  const hasToken = !!localStorage.getItem('paypilot_token');
+  window.location.replace(hasToken ? 'dashboard.html' : 'login.html');
+</script>
+</body>
+</html>

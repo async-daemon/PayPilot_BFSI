@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>PayPilot | Track Payments</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="topbar">
+  <a class="brand" href="dashboard.html">PayPilot</a>
+  <div class="topbar-actions">
+    <span id="welcomeMsg" class="user-chip hidden"></span>
+    <a href="dashboard.html">Home</a>
+    <button onclick="logout()">Logout</button>
+  </div>
+</div>
+
+<div class="dashboard">
+  <div class="page-hero">
+    <div style="display:flex;align-items:center;gap:16px">
+      <div class="icon-chip blue">📈</div>
+      <div>
+        <h2>Track Payments</h2>
+        <p>Payment progress, overview and full history</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="progress">Payment Progress</button>
+    <button class="tab-btn" data-tab="overview">Payment Overview</button>
+    <button class="tab-btn" data-tab="history">Payment History</button>
+  </div>
+
+  <!-- Payment Progress -->
+  <div class="panel" id="panel-progress">
+    <div class="filters">
+      <div><label>Bill Category</label><select id="pgCategory"></select></div>
+      <div><label>Bill Name</label><input id="pgSearch" placeholder="Search" /></div>
+      <div><button class="btn" onclick="loadProgress()">Filter</button></div>
+    </div>
+    <table>
+      <thead><tr><th>Bill Name</th><th>Amount</th><th>Due Date</th><th>Progress</th></tr></thead>
+      <tbody id="pgRows"></tbody>
+    </table>
+    <div id="pgEmpty" class="empty-state hidden">No bills found.</div>
+  </div>
+
+  <!-- Payment Overview -->
+  <div class="panel hidden" id="panel-overview">
+    <div class="filters">
+      <div><label>Bill Category</label><select id="poCategory"></select></div>
+      <div><label>Date From</label><input id="poFrom" type="date" /></div>
+      <div><label>Date To</label><input id="poTo" type="date" /></div>
+      <div><button class="btn" onclick="loadPaymentOverview()">Next</button></div>
+    </div>
+    <table>
+      <thead><tr><th>Bill Name</th><th>Category</th><th>Due Date</th><th>Amount</th><th>Status</th></tr></thead>
+      <tbody id="poRows"></tbody>
+    </table>
+    <div id="poEmpty" class="empty-state hidden">No bills found for the selected period.</div>
+  </div>
+
+  <!-- Payment History -->
+  <div class="panel hidden" id="panel-history">
+    <div class="filters">
+      <div><label>Bill Category</label><select id="phCategory"></select></div>
+      <div><label>Date From</label><input id="phFrom" type="date" /></div>
+      <div><label>Date To</label><input id="phTo" type="date" /></div>
+      <div><button class="btn" onclick="loadHistory()">Filter</button></div>
+    </div>
+    <table>
+      <thead><tr><th>Bill Name</th><th>Total Amount</th><th>Due Date</th><th>Paid On</th><th>Payment Mode</th></tr></thead>
+      <tbody id="phRows"></tbody>
+    </table>
+    <div id="phEmpty" class="empty-state hidden">No payment history found.</div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/track-payments.js"></script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>PayPilot | Sign Up</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="auth-wrap">
+  <div class="auth-shell" style="max-width:980px">
+    <div class="auth-hero">
+      <div class="auth-hero-brand"><span class="glyph">💳</span> PayPilot</div>
+      <div class="auth-hero-copy">
+        <h2>Join thousands managing<br/>their bills smarter.</h2>
+        <p>Create your account to start tracking bills, scheduling payments, and staying on top of your finances.</p>
+        <ul class="auth-hero-features">
+          <li><span class="dot">🏦</span> Link your bank details securely</li>
+          <li><span class="dot">✅</span> Admin-approved access requests</li>
+          <li><span class="dot">📊</span> Insights into your spending</li>
+        </ul>
+      </div>
+      <div class="auth-hero-foot">© 2026 PayPilot · Secure sign-up</div>
+    </div>
+    <div class="auth-form-panel wide">
+  <div class="auth-card" style="max-width:520px">
+    <h1>Create your account</h1>
+    <p class="subtitle">Register to start managing your bills</p>
+
+    <div class="form-grid">
+      <div>
+        <label>Email Id</label>
+        <input id="email" type="email" placeholder="Enter your mail id" />
+      </div>
+      <div>
+        <label>User Id</label>
+        <input id="userId" placeholder="Enter your user id" />
+      </div>
+      <div>
+        <label>PAN Details</label>
+        <input id="panDetails" placeholder="Enter the PAN details" />
+      </div>
+      <div>
+        <label>Bank Account Number</label>
+        <input id="bankAccountNumber" placeholder="Enter the bank account number" />
+      </div>
+      <div>
+        <label>IFSC Code</label>
+        <input id="ifscCode" placeholder="Enter the Bank IFSC code" />
+      </div>
+      <div>
+        <label>Banking Partner</label>
+        <select id="bankingPartner">
+          <option value="">Select bank</option>
+          <option>HDFC</option>
+          <option>ICICI</option>
+          <option>SBI</option>
+          <option>Axis Bank</option>
+          <option>Kotak</option>
+          <option>Union Bank</option>
+        </select>
+      </div>
+      <div>
+        <label>Password</label>
+        <input id="password" type="password" placeholder="Enter the password" />
+      </div>
+      <div>
+        <label>Confirm Password</label>
+        <input id="confirmPassword" type="password" placeholder="Confirm your password" />
+      </div>
+    </div>
+
+    <div id="banner" class="banner hidden"></div>
+
+    <button class="btn full" id="requestAccessBtn">Request Access</button>
+
+    <div class="link-row" style="justify-content:center">
+      <span>Already a user? <a href="login.html">Login</a></span>
+    </div>
+  </div>
+  </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+const banner = document.getElementById('banner');
+document.getElementById('requestAccessBtn').addEventListener('click', async () => {
+  const body = {
+    email: document.getElementById('email').value.trim(),
+    userId: document.getElementById('userId').value.trim(),
+    panDetails: document.getElementById('panDetails').value.trim(),
+    bankAccountNumber: document.getElementById('bankAccountNumber').value.trim(),
+    ifscCode: document.getElementById('ifscCode').value.trim(),
+    bankingPartner: document.getElementById('bankingPartner').value,
+    password: document.getElementById('password').value,
+    confirmPassword: document.getElementById('confirmPassword').value,
+  };
+  try {
+    const data = await api('/auth/signup', { method: 'POST', body });
+    showBanner(banner, `${data.message} An admin will approve your access shortly, then you can log in.`, 'success');
+  } catch (err) {
+    showBanner(banner, err.message, 'error');
+  }
+});
+</script>
+</body>
+</html>

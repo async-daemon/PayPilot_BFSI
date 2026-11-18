@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>PayPilot | Login</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="auth-wrap">
+  <div class="auth-shell">
+    <div class="auth-hero">
+      <div class="auth-hero-brand"><span class="glyph">💳</span> PayPilot</div>
+      <div class="auth-hero-copy">
+        <h2>Seamless bill management,<br/>hassle‑free payments.</h2>
+        <p>Track every bill, schedule payments ahead of time, and never miss a due date again.</p>
+        <ul class="auth-hero-features">
+          <li><span class="dot">📋</span> Track and categorize every bill</li>
+          <li><span class="dot">⏰</span> Smart reminders before due dates</li>
+          <li><span class="dot">🔒</span> Bank-grade secure verification</li>
+        </ul>
+      </div>
+      <div class="auth-hero-foot">© 2026 PayPilot · Secure sign-in</div>
+    </div>
+    <div class="auth-form-panel">
+  <div class="auth-card">
+    <h1>Welcome back</h1>
+    <p class="subtitle">Log in to manage your bills and payments</p>
+
+    <label for="userId">User Id</label>
+    <input id="userId" placeholder="Enter your user id" autocomplete="username" />
+
+    <label for="password">Password</label>
+    <input id="password" type="password" placeholder="Enter your password" autocomplete="current-password" />
+
+    <div id="verifyBlock" class="hidden">
+      <label id="challengeLabel">Screen Verification</label>
+      <div id="captchaGrid" class="captcha-grid"></div>
+      <button class="btn secondary" style="margin-top:10px;width:100%" id="verifyScreenBtn">Verify</button>
+    </div>
+
+    <div id="otpBlock" class="hidden">
+      <label for="otpInput">Enter OTP</label>
+      <input id="otpInput" placeholder="6-digit OTP" />
+      <button class="btn secondary" style="margin-top:10px;width:100%" id="verifyOtpBtn">Verify OTP</button>
+    </div>
+
+    <div id="banner" class="banner hidden"></div>
+
+    <div class="btn-row">
+      <button class="btn secondary" id="screenVerifyTrigger" style="flex:1">Screen Verification</button>
+      <button class="btn" id="loginBtn" style="flex:1" disabled>Login</button>
+    </div>
+
+    <div class="link-row">
+      <a href="forgot-password.html">Forgot Password</a>
+      <a href="signup.html">New User? Sign-Up here</a>
+    </div>
+  </div>
+  </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+const banner = document.getElementById('banner');
+let screenVerified = false;
+let otpVerified = false;
+let selectedCaptchaIds = new Set();
+
+document.getElementById('screenVerifyTrigger').addEventListener('click', async () => {
+  const userId = document.getElementById('userId').value.trim();
+  if (!userId) return showBanner(banner, 'Please enter your User Id first.', 'error');
+  try {
+    const data = await api('/auth/screen-challenge', { method: 'POST', body: { userId } });
+    document.getElementById('challengeLabel').textContent = `Select all images with a ${data.target}`;
+    selectedCaptchaIds = new Set();
+    const grid = document.getElementById('captchaGrid');
+    grid.innerHTML = data.grid
+      .map((cell) => `<div class="captcha-cell" data-id="${cell.id}">${cell.emoji}</div>`)
+      .join('');
+    grid.querySelectorAll('.captcha-cell').forEach((cell) => {
+      cell.addEventListener('click', () => {
+        const id = Number(cell.dataset.id);
+        if (selectedCaptchaIds.has(id)) {
+          selectedCaptchaIds.delete(id);
+          cell.classList.remove('selected');
+        } else {
+          selectedCaptchaIds.add(id);
+          cell.classList.add('selected');
+        }
+      });
+    });
+    document.getElementById('verifyBlock').classList.remove('hidden');
+    hideBanner(banner);
+  } catch (err) {
+    showBanner(banner, err.message, 'error');
+  }
+});
+
+document.getElementById('verifyScreenBtn').addEventListener('click', async () => {
+  const userId = document.getElementById('userId').value.trim();
+  const answer = [...selectedCaptchaIds];
+  try {
+    const data = await api('/auth/verify-screen', { method: 'POST', body: { userId, answer } });
+    screenVerified = true;
+    document.getElementById('verifyBlock').classList.add('hidden');
+    document.getElementById('otpBlock').classList.remove('hidden');
+    showBanner(banner, `${data.message} (Demo OTP: ${data.devOtp} — would be emailed in production)`, 'success');
+  } catch (err) {
+    showBanner(banner, err.message, 'error');
+  }
+});
+
+document.getElementById('verifyOtpBtn').addEventListener('click', async () => {
+  const userId = document.getElementById('userId').value.trim();
+  const otp = document.getElementById('otpInput').value.trim();
+  try {
+    await api('/auth/verify-otp', { method: 'POST', body: { userId, otp } });
+    otpVerified = true;
+    document.getElementById('otpBlock').classList.add('hidden');
+    document.getElementById('loginBtn').disabled = false;
+    showBanner(banner, 'OTP Verified! Click Login to continue.', 'success');
+  } catch (err) {
+    showBanner(banner, err.message, 'error');
+  }
+});
+
+document.getElementById('loginBtn').addEventListener('click', async () => {
+  const userId = document.getElementById('userId').value.trim();
+  const password = document.getElementById('password').value;
+  if (!screenVerified || !otpVerified) return showBanner(banner, 'Please complete Screen and OTP Verification first.', 'error');
+  try {
+    const data = await api('/auth/login', { method: 'POST', body: { userId, password } });
+    setToken(data.token);
+    setUser(data.user);
+    window.location.href = 'dashboard.html';
+  } catch (err) {
+    showBanner(banner, err.message, 'error');
+  }
+});
+</script>
+</body>
+</html>

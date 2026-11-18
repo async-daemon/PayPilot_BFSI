@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>PayPilot | Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="topbar">
+  <a class="brand" href="dashboard.html">PayPilot</a>
+  <div class="topbar-actions">
+    <span id="welcomeMsg" class="user-chip hidden"></span>
+    <a href="admin.html" id="adminLink" class="hidden">Admin</a>
+    <button onclick="logout()">Logout</button>
+  </div>
+</div>
+
+<div class="dashboard">
+  <div class="page-hero">
+    <div>
+      <h2>Welcome back 👋</h2>
+      <p>Manage your bills, schedule payments, and track everything in one place.</p>
+    </div>
+  </div>
+
+  <div class="home-grid">
+    <a class="home-card" href="schedule-payment.html">
+      <div class="icon-chip purple">💳</div>
+      <h3>Schedule Payment</h3>
+      <p>Schedule, modify or cancel upcoming bill payments</p>
+    </a>
+    <a class="home-card" href="track-payments.html">
+      <div class="icon-chip blue">📈</div>
+      <h3>Track Payments</h3>
+      <p>View payment progress, overview and history</p>
+    </a>
+    <a class="home-card" href="manage-bills.html">
+      <div class="icon-chip pink">🗂️</div>
+      <h3>Manage Bills</h3>
+      <p>Add new bills, view overview, reminders and overdue bills</p>
+    </a>
+    <a class="home-card" href="manage-bills.html?tab=snooze">
+      <div class="icon-chip green">🙋</div>
+      <h3>Support</h3>
+      <p>Snooze, mark paid, or get help with your bills</p>
+    </a>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+requireAuthOrRedirect();
+const user = getUser();
+if (user) {
+  const chip = document.getElementById('welcomeMsg');
+  const initial = user.user_id.charAt(0).toUpperCase();
+  chip.innerHTML = `<span class="avatar">${initial}</span> ${user.user_id}`;
+  chip.classList.remove('hidden');
+  if (user.is_admin) document.getElementById('adminLink').classList.remove('hidden');
+}
+</script>
+</body>
+</html>

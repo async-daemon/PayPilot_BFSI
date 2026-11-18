@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>PayPilot | Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="topbar">
+  <a class="brand" href="dashboard.html">PayPilot</a>
+  <div class="topbar-actions">
+    <span id="welcomeMsg" class="user-chip hidden"></span>
+    <a href="dashboard.html">Home</a>
+    <button onclick="logout()">Logout</button>
+  </div>
+</div>
+
+<div class="dashboard">
+  <div class="page-hero">
+    <div style="display:flex;align-items:center;gap:16px">
+      <div class="icon-chip orange">🛡️</div>
+      <div>
+        <h2>Pending User Access Requests</h2>
+        <p>Approve new sign-ups before they can log in</p>
+      </div>
+    </div>
+  </div>
+  <div class="panel">
+    <table>
+      <thead><tr><th>User Id</th><th>Email</th><th>Requested On</th><th>Action</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div id="empty" class="empty-state hidden">No pending requests.</div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+requireAuthOrRedirect();
+renderUserChip('welcomeMsg');
+async function load() {
+  const data = await api('/auth/admin/pending-users');
+  const tbody = document.getElementById('rows');
+  tbody.innerHTML = '';
+  if (!data.users.length) {
+    document.getElementById('empty').classList.remove('hidden');
+    return;
+  }
+  document.getElementById('empty').classList.add('hidden');
+  data.users.forEach((u) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${u.user_id}</td><td>${u.email}</td><td>${u.created_at}</td>
+      <td><button class="btn" data-id="${u.user_id}">Approve</button></td>`;
+    tr.querySelector('button').addEventListener('click', async () => {
+      await api(`/auth/admin/approve/${u.user_id}`, { method: 'POST' });
+      load();
+    });
+    tbody.appendChild(tr);
+  });
+}
+load().catch((e) => alert(e.message));
+</script>
+</body>
+</html>

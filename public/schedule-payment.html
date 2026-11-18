@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>PayPilot | Schedule Payment</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="topbar">
+  <a class="brand" href="dashboard.html">PayPilot</a>
+  <div class="topbar-actions">
+    <span id="welcomeMsg" class="user-chip hidden"></span>
+    <a href="dashboard.html">Home</a>
+    <button onclick="logout()">Logout</button>
+  </div>
+</div>
+
+<div class="dashboard">
+  <div class="page-hero">
+    <div style="display:flex;align-items:center;gap:16px">
+      <div class="icon-chip purple">💳</div>
+      <div>
+        <h2>Schedule Payment</h2>
+        <p>Schedule, modify or cancel upcoming bill payments</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="new">Schedule New Payment</button>
+    <button class="tab-btn" data-tab="manage">Cancel / Modify</button>
+  </div>
+
+  <!-- Schedule New -->
+  <div class="panel" id="panel-new">
+    <div class="filters">
+      <div><label>Bill Category</label><select id="spCategory"></select></div>
+      <div><label>Date From</label><input id="spFrom" type="date" /></div>
+      <div><label>Date To</label><input id="spTo" type="date" /></div>
+      <div><button class="btn" onclick="loadBillsForSchedule()">Next</button></div>
+    </div>
+    <table>
+      <thead><tr><th>Bill Name</th><th>Total Amount</th><th>Due Date</th><th>Billing Cycle</th><th></th></tr></thead>
+      <tbody id="spBillRows"></tbody>
+    </table>
+    <div id="spEmpty" class="empty-state hidden">No bills found for the selected filters.</div>
+
+    <div id="spFormWrap" class="hidden" style="margin-top:24px;border-top:1px solid var(--border);padding-top:20px">
+      <h3 style="color:var(--purple-dark)">Payment Details</h3>
+      <div class="form-grid">
+        <div><label>Purpose of Payment</label>
+          <select id="spPurpose"><option>Rent</option><option>EMI / Loan Repayment</option><option>Utility Bill</option><option>Subscription</option><option>Other</option></select>
+        </div>
+        <div><label>Payee Name</label><input id="payeeName" placeholder="Search payee name" /></div>
+        <div><label>Payee Address</label><input id="payeeAddress" /></div>
+        <div><label>Payee Bank Details</label><input id="payeeBankDetails" placeholder="Bank, Acc No, IFSC" /></div>
+        <div><label>Payment Mode</label>
+          <select id="spPaymentMode"><option>Net Banking</option><option>Credit Card</option><option>Debit Card</option></select>
+        </div>
+        <div id="spFrequencyWrap"><label>Payment Frequency</label>
+          <select id="spFrequency"><option value="">One-time</option><option>Weekly</option><option>Monthly</option></select>
+        </div>
+        <div><label>Payer Account Number</label><input id="spPayerAccount" /></div>
+        <div><label>Schedule Date</label><input id="spScheduleDate" type="date" /></div>
+        <div><label>Amount</label><input id="spAmount" type="number" /></div>
+      </div>
+      <div id="spBanner" class="banner hidden"></div>
+      <div class="btn-row">
+        <button class="btn secondary" onclick="document.getElementById('spFormWrap').classList.add('hidden')">Back</button>
+        <button class="btn" id="confirmScheduleBtn">Confirm Payment</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cancel / Modify -->
+  <div class="panel hidden" id="panel-manage">
+    <div class="filters">
+      <div><label>Bill Category</label><select id="cmCategory"></select></div>
+      <div><label>Date From</label><input id="cmFrom" type="date" /></div>
+      <div><label>Date To</label><input id="cmTo" type="date" /></div>
+      <div><button class="btn" onclick="loadScheduled()">Filter</button></div>
+    </div>
+    <table>
+      <thead><tr><th>Bill Name</th><th>Amount</th><th>Due Date</th><th>Schedule Date</th><th>Status</th><th></th></tr></thead>
+      <tbody id="cmRows"></tbody>
+    </table>
+    <div id="cmEmpty" class="empty-state hidden">No scheduled payments found.</div>
+    <div id="cmBanner" class="banner hidden"></div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/schedule-payment.js"></script>
+</body>
+</html>

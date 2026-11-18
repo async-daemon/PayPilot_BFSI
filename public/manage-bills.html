@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>PayPilot | Manage Bills</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="topbar">
+  <a class="brand" href="dashboard.html">PayPilot</a>
+  <div class="topbar-actions">
+    <span id="welcomeMsg" class="user-chip hidden"></span>
+    <a href="dashboard.html">Home</a>
+    <button onclick="logout()">Logout</button>
+  </div>
+</div>
+
+<div class="dashboard">
+  <div class="page-hero">
+    <div style="display:flex;align-items:center;gap:16px">
+      <div class="icon-chip pink">🗂️</div>
+      <div>
+        <h2>Manage Bills</h2>
+        <p>Add, edit, pay and organize every bill in one place</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="add">Add New Bill</button>
+    <button class="tab-btn" data-tab="overview">Bills Overview</button>
+    <button class="tab-btn" data-tab="overdue">Upcoming/Overdue Bills</button>
+    <button class="tab-btn" data-tab="snooze">Snooze or Mark Paid</button>
+    <button class="tab-btn" data-tab="reminder">Reminder Settings</button>
+  </div>
+
+  <!-- Add New Bill -->
+  <div class="panel" id="panel-add">
+    <div id="addBanner" class="banner hidden"></div>
+    <div class="form-grid">
+      <div>
+        <label>Bill Name</label>
+        <input id="billName" placeholder="e.g. House Rent - Nov" />
+      </div>
+      <div>
+        <label id="billAmountLabel">Amount</label>
+        <input id="billAmount" type="number" min="0" placeholder="₹" />
+      </div>
+      <div>
+        <label>Bill Category</label>
+        <select id="billCategory"></select>
+      </div>
+      <div>
+        <label>Reminder Frequency</label>
+        <select id="billReminderFrequency">
+          <option value="">None</option>
+          <option>Daily</option>
+          <option>Weekly</option>
+          <option>Bi-weekly</option>
+          <option>Monthly</option>
+        </select>
+      </div>
+      <div>
+        <label>Bill Date</label>
+        <input id="billDate" type="date" />
+      </div>
+      <div>
+        <label id="billDueDateLabel">Due Date</label>
+        <input id="billDueDate" type="date" />
+      </div>
+      <div id="debtFieldsWrap" class="hidden">
+        <label>Loan Type</label>
+        <input id="billLoanType" placeholder="e.g. Home loan, Car Loan" />
+      </div>
+      <div id="debtFieldsWrap2" class="hidden">
+        <label>Total Loan Amount</label>
+        <input id="billTotalLoanAmount" type="number" min="0" placeholder="₹" />
+      </div>
+      <div id="rentFieldsWrap" class="hidden">
+        <label>Period From</label>
+        <input id="billPeriodFrom" type="date" />
+      </div>
+      <div id="rentFieldsWrap2" class="hidden">
+        <label>Period To</label>
+        <input id="billPeriodTo" type="date" />
+      </div>
+      <div class="full">
+        <label>Attachment (PDF only, max 2MB)</label>
+        <input id="billAttachment" type="file" accept="application/pdf" />
+      </div>
+      <div class="full">
+        <label>Notes (if any)</label>
+        <textarea id="billNotes"></textarea>
+      </div>
+    </div>
+    <div class="checkbox-row">
+      <input type="checkbox" id="billRecurring" />
+      <label style="margin:0" for="billRecurring">Recurring Bill</label>
+    </div>
+    <div class="btn-row">
+      <button class="btn secondary" onclick="resetAddForm()">Cancel</button>
+      <button class="btn" id="saveBillBtn">Save</button>
+    </div>
+  </div>
+
+  <!-- Bills Overview -->
+  <div class="panel hidden" id="panel-overview">
+    <div class="filters">
+      <div><label>Bill Category</label><select id="ovCategory"></select></div>
+      <div><label>Bill Date From</label><input id="ovFrom" type="date" /></div>
+      <div><label>Bill Date To</label><input id="ovTo" type="date" /></div>
+      <div><label>Bill Status</label>
+        <select id="ovStatus">
+          <option value="">All</option>
+          <option value="Not Paid">Upcoming/Pending</option>
+          <option value="Partially Paid">Partially Paid</option>
+          <option value="Paid">Paid</option>
+        </select>
+      </div>
+      <div><button class="btn" onclick="loadOverview()">Submit</button></div>
+    </div>
+    <div class="category-grid" id="categoryGrid"></div>
+    <table style="margin-top:18px">
+      <thead id="ovTableHead"><tr><th>Bill Name</th><th>Category</th><th>Due Date</th><th>Amount</th><th>Status</th><th colspan="2"></th></tr></thead>
+      <tbody id="ovRows"></tbody>
+    </table>
+    <div id="ovEmpty" class="empty-state hidden">No bills found.</div>
+  </div>
+
+  <!-- Upcoming / Overdue -->
+  <div class="panel hidden" id="panel-overdue">
+    <div class="filters">
+      <div><label>Bill Category</label><select id="odCategory"></select></div>
+      <div><label>Bill Name</label><input id="odSearch" placeholder="Search bill name" /></div>
+      <div><button class="btn" onclick="loadOverdue()">Filter</button></div>
+      <div><button class="btn secondary" onclick="loadOverdue(true)">Sort by Overdue</button></div>
+    </div>
+    <table>
+      <thead><tr><th>Amount Due</th><th>Total Amount</th><th>Bill Name</th><th>Due Date</th><th>Overdue By</th><th>Payment Status</th><th></th></tr></thead>
+      <tbody id="odRows"></tbody>
+    </table>
+    <div id="odEmpty" class="empty-state hidden">No upcoming or overdue bills.</div>
+  </div>
+
+  <!-- Snooze or Mark Paid -->
+  <div class="panel hidden" id="panel-snooze">
+    <div class="filters">
+      <div><label>Bill Category</label><select id="snCategory"></select></div>
+      <div><label>Bill Name</label><input id="snSearch" placeholder="Search bill name" /></div>
+      <div><button class="btn" onclick="loadSnooze()">Filter</button></div>
+    </div>
+    <table>
+      <thead><tr><th>Bill Name</th><th>Due Date</th><th>Status</th><th></th></tr></thead>
+      <tbody id="snRows"></tbody>
+    </table>
+    <div id="snEmpty" class="empty-state hidden">No bills found.</div>
+  </div>
+
+  <!-- Reminder Settings -->
+  <div class="panel hidden" id="panel-reminder">
+    <div class="form-grid">
+      <div>
+        <label>Bill Category</label>
+        <select id="rmCategory"></select>
+      </div>
+      <div>
+        <label>Bill Name</label>
+        <select id="rmBillSelect"></select>
+      </div>
+    </div>
+    <div id="rmFormWrap" class="hidden" style="margin-top:14px">
+      <div class="form-grid">
+        <div>
+          <label>Reminder Frequency</label>
+          <select id="rmFrequency">
+            <option>Daily</option><option>Weekly</option><option>Bi-weekly</option><option>Monthly</option>
+          </select>
+        </div>
+        <div>
+          <label>Reminder Starting Date</label>
+          <input id="rmStartDate" type="date" />
+        </div>
+        <div>
+          <label>Message Customization</label>
+          <input id="rmMessage" placeholder="Bill payment due" />
+        </div>
+        <div>
+          <label>Notification Preference</label>
+          <select id="rmPreference"><option>Email</option><option>Contact</option></select>
+        </div>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="rmRecurring" />
+        <label style="margin:0" for="rmRecurring">Recurring Bill</label>
+      </div>
+      <div class="btn-row">
+        <button class="btn secondary" onclick="document.getElementById('rmFormWrap').classList.add('hidden')">Back</button>
+        <button class="btn" id="rmSaveBtn">Submit</button>
+      </div>
+    </div>
+    <div id="rmBanner" class="banner hidden" style="margin-top:14px"></div>
+  </div>
+</div>
+
+<!-- Edit Bill Modal -->
+<div class="modal-backdrop hidden" id="editModal">
+  <div class="modal">
+    <h3>Edit Bill</h3>
+    <label>Bill Name</label>
+    <input id="editBillName" />
+    <label>Bill Category</label>
+    <select id="editBillCategory"></select>
+    <label>Due Date</label>
+    <input id="editBillDueDate" type="date" />
+    <label>Amount</label>
+    <input id="editBillAmount" type="number" />
+    <div id="editDebtFieldsWrap" class="hidden">
+      <label>Loan Type</label>
+      <input id="editBillLoanType" placeholder="e.g. Home loan, Car Loan" />
+      <label>Total Loan Amount</label>
+      <input id="editBillTotalLoanAmount" type="number" min="0" />
+    </div>
+    <div id="editRentFieldsWrap" class="hidden">
+      <label>Period From</label>
+      <input id="editBillPeriodFrom" type="date" />
+      <label>Period To</label>
+      <input id="editBillPeriodTo" type="date" />
+    </div>
+    <label>Reminder Frequency</label>
+    <select id="editBillReminderFrequency">
+      <option value="">None</option>
+      <option>Daily</option><option>Weekly</option><option>Bi-weekly</option><option>Monthly</option>
+    </select>
+    <label>Notes</label>
+    <textarea id="editBillNotes"></textarea>
+    <div class="checkbox-row">
+      <input type="checkbox" id="editBillRecurring" />
+      <label style="margin:0" for="editBillRecurring">Recurring Bill</label>
+    </div>
+    <div id="editBanner" class="banner hidden" style="margin-top:14px"></div>
+    <div class="btn-row">
+      <button class="btn secondary" onclick="closeEditModal()">Cancel</button>
+      <button class="btn" id="confirmEditBtn">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Pay Now Modal -->
+<div class="modal-backdrop hidden" id="payModal">
+  <div class="modal" style="width:480px">
+    <!-- Step 1: method + amount -->
+    <div id="payStepMethod">
+      <h3>Select payment method</h3>
+      <div class="pay-methods">
+        <div class="pay-method" data-method="Net Banking">Net Banking</div>
+        <div class="pay-method" data-method="Credit Card">Credit Card</div>
+        <div class="pay-method" data-method="Debit Card">Debit Card</div>
+      </div>
+      <label style="margin-top:14px">Amount</label>
+      <input id="payAmount" type="number" />
+      <div class="btn-row">
+        <button class="btn secondary" onclick="closePayModal()">Cancel</button>
+        <button class="btn" id="payNextBtn">Next</button>
+      </div>
+    </div>
+
+    <!-- Step 2a: select payment institution (Net Banking) -->
+    <div id="payStepBank" class="hidden">
+      <h3>Select payment institution</h3>
+      <div class="bank-grid" id="bankGrid"></div>
+      <button class="btn secondary" id="bankMoreBtn" style="margin-top:10px">more &raquo;</button>
+      <div class="btn-row">
+        <button class="btn secondary" id="payBackFromBankBtn">Back</button>
+        <button class="btn" id="confirmPayBankBtn" disabled>Pay Now</button>
+      </div>
+    </div>
+
+    <!-- Step 2b: card details (Credit/Debit Card) -->
+    <div id="payStepCard" class="hidden">
+      <h3>Pay with card</h3>
+      <div class="pay-amount-banner">₹<span id="payCardAmountDisplay"></span></div>
+      <label>Email</label>
+      <input id="cardEmail" type="email" placeholder="you@example.com" />
+      <label>Name on card</label>
+      <input id="cardHolderName" placeholder="Full name" />
+      <label>Card Number</label>
+      <input id="cardNumber" placeholder="1234 1234 1234 1234" maxlength="19" />
+      <div class="form-grid">
+        <div><label>Expiry (MM/YY)</label><input id="cardExpiry" placeholder="MM/YY" maxlength="5" /></div>
+        <div><label>CVV</label><input id="cardCvv" type="password" placeholder="***" maxlength="4" /></div>
+      </div>
+      <label>Country or region</label>
+      <select id="cardCountry"><option>India</option><option>United States</option><option>United Kingdom</option><option>Other</option></select>
+      <div id="cardBanner" class="banner hidden" style="margin-top:12px"></div>
+      <div class="btn-row">
+        <button class="btn secondary" id="payBackFromCardBtn">Back</button>
+        <button class="btn" id="confirmPayCardBtn">Pay</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/manage-bills.js"></script>
+</body>
+</html>
