@@ -14,10 +14,12 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class BillService {
@@ -93,7 +95,7 @@ public class BillService {
             throw ApiException.badRequest("Only PDF attachments are allowed.");
         }
         try {
-            Path dir = Path.of(uploadsDir);
+            Path dir = Paths.get(uploadsDir);
             Files.createDirectories(dir);
             String filename = UUID.randomUUID() + ".pdf";
             Path target = dir.resolve(filename);
@@ -129,7 +131,7 @@ public class BillService {
     public List<BillView> overview(String userId, String category, LocalDate fromDate, LocalDate toDate, String status, String search) {
         String cat = (category == null || category.equals("All")) ? null : category;
         List<Bill> bills = billRepository.search(userId, cat, fromDate, toDate, status, search);
-        return bills.stream().map(this::decorate).toList();
+        return bills.stream().map(this::decorate).collect(Collectors.toList());
     }
 
     public List<BillRepository.CategoryCount> countByCategory(String userId) {
@@ -142,13 +144,13 @@ public class BillService {
         return bills.stream()
             .filter(b -> !Constants.STATUS_PAID.equals(b.getPaymentStatus()))
             .map(this::decorate)
-            .toList();
+            .collect(Collectors.toList());
     }
 
     public List<BillView> snoozeOrMarkPaidList(String userId, String category, String search) {
         String cat = (category == null || category.equals("All")) ? null : category;
         List<Bill> bills = billRepository.search(userId, cat, null, null, null, search);
-        return bills.stream().map(this::decorate).toList();
+        return bills.stream().map(this::decorate).collect(Collectors.toList());
     }
 
     public BillView snoozeBill(String userId, String billId, LocalDate untilDate) {

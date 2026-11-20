@@ -11,6 +11,7 @@ import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class PaymentService {
@@ -43,7 +44,7 @@ public class PaymentService {
             row.put("progress_percent", percent);
             row.put("progress_color", color);
             return row;
-        }).toList();
+        }).collect(Collectors.toList());
     }
 
     public List<Map<String, Object>> paymentOverview(String userId, String category, LocalDate fromDate, LocalDate toDate) {
@@ -62,7 +63,7 @@ public class PaymentService {
             row.put("amount", bill.getAmount());
             row.put("payment_status", status);
             return row;
-        }).toList();
+        }).collect(Collectors.toList());
     }
 
     public List<PaymentView> paymentHistory(String userId, String category, LocalDate fromDate, LocalDate toDate) {

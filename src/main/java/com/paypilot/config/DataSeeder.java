@@ -17,7 +17,7 @@ public class DataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (userRepository.findById("admin").isEmpty()) {
+        if (!userRepository.findById("admin").isPresent()) {
             User admin = new User();
             admin.setUserId("admin");
             admin.setEmail("admin@paypilot.com");

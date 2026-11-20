@@ -1,12 +1,13 @@
 package com.paypilot.controller;
 
+import com.paypilot.util.Maps;
 import com.paypilot.dto.Requests.ModifyScheduleRequest;
 import com.paypilot.dto.Requests.ScheduleRequest;
 import com.paypilot.dto.ScheduledPaymentView;
 import com.paypilot.model.Constants;
 import com.paypilot.security.AuthInterceptor;
 import com.paypilot.service.ScheduledPaymentService;
-import jakarta.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,7 +32,7 @@ public class ScheduledPaymentController {
 
     @GetMapping("/payment-methods")
     public Map<String, Object> paymentMethods() {
-        return Map.of("methods", Constants.PAYMENT_METHODS);
+        return Maps.of("methods", Constants.PAYMENT_METHODS);
     }
 
     @GetMapping
@@ -42,7 +43,7 @@ public class ScheduledPaymentController {
         HttpServletRequest request
     ) {
         List<ScheduledPaymentView> scheduled = scheduledPaymentService.listScheduled(userId(request), category, fromDate, toDate);
-        return Map.of("scheduled", scheduled);
+        return Maps.of("scheduled", scheduled);
     }
 
     @PostMapping("/bill/{billId}")

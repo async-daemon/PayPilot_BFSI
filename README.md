@@ -12,9 +12,11 @@ The BRD's **Architecture Diagram** (page 40 of the BRD) specifies:
 
 | Layer | BRD requirement | What this project uses |
 |---|---|---|
-| Application / Business Layer | Java 1.8 / Spring (Web-Server Classes: Configuration, Controllers, Service, REST Controllers) | **Java 17 / Spring Boot 3.2** (a newer, fully-compatible LTS version of Java — the BRD's Java 1.8 is end-of-life and not meaningfully different for this app's code) |
-| Data Access Layer | Hibernate ORM (Repository classes) | **Hibernate ORM 6 via Spring Data JPA** |
+| Application / Business Layer | Java 1.8 / Spring (Web-Server Classes: Configuration, Controllers, Service, REST Controllers) | **Java 8 (Eclipse Temurin 8u432) / Spring Boot 2.7.18** — matches the BRD exactly. (Spring Boot 2.7.18 is the last 2.x release and the newest Boot version that still runs on Java 8; Boot 3.x requires Java 17+.) |
+| Data Access Layer | Hibernate ORM (Repository classes) | **Hibernate ORM 5.6.15.Final via Spring Data JPA** (the version Spring Boot 2.7 brings in — Hibernate 6 requires Java 11+) |
 | Database | Oracle 11g | **H2 (embedded) by default, with a ready-to-use Oracle 11g connection profile** — see §9. Oracle 11g is a 2007-era, officially desupported release with no automatic install path (Oracle gates its download behind an account sign-in), so the app ships with H2 for zero-setup running, plus an `oracle` Spring profile that's fully wired (JDBC driver, dialect, connection URL) for the moment a real Oracle 11g instance is available — switching is a config flag, not a code change, since Hibernate generates all the SQL through the same Repository interfaces either way |
+
+> **Note on namespaces:** because this targets Java 8 / Spring Boot 2.x (not 3.x), the codebase uses the `javax.*` namespace throughout (`javax.persistence`, `javax.servlet`) — Spring only switched to `jakarta.*` in the Boot 3 line.
 
 Everything else in the BRD (two-step login with image-selection screen verification + OTP, admin-approved sign-ups, account lockout, bill tracking with category-specific fields, PDF attachments, recurring bills, reminders, scheduled payments, Pay Now with bank/card selection, payment tracking) is implemented identically to the BRD's wireframes and user stories.
 
@@ -26,7 +28,7 @@ To **build and run** this project you need:
 
 | Requirement | Version used here | Notes |
 |---|---|---|
-| **JDK** | 17 (Eclipse Temurin) | Any Java 17+ distribution works. Installed here via `winget install EclipseAdoptium.Temurin.17.JDK` |
+| **JDK** | **8** (Eclipse Temurin 8u432-b06) — matches the BRD's "Java 1.8" exactly | Any Java 8 distribution works. Installed here by downloading the Temurin 8 zip directly from `github.com/adoptium/temurin8-binaries` and extracting it (no system package manager needed) |
 | **Maven** | 3.9.9 | Installed here by downloading the binary archive directly from `archive.apache.org` and adding it to `PATH` (no system package manager needed) |
 | **OS** | Windows 10/11 (also runs on macOS/Linux — it's pure Java) | |
 | Disk space | ~500 MB | JDK (~300 MB) + Maven (~10 MB) + downloaded dependencies (~150 MB, cached in `~/.m2`) |
@@ -37,31 +39,47 @@ No Node.js, no Docker, and **no separate database server** are required — H2 r
 ### Verifying your setup
 
 ```bash
-java -version    # should print "17.x.x" or newer
-mvn -version     # should print "Apache Maven 3.x"
+java -version    # should print "1.8.0_xxx"
+mvn -version     # should print "Apache Maven 3.x" and "Java version: 1.8...."
 ```
 
 ### Installing the prerequisites (if you don't have them)
 
-**Windows (winget):**
+**Windows:**
 ```bash
-winget install --id EclipseAdoptium.Temurin.17.JDK -e
-```
-Maven isn't reliably available via winget; download it directly instead:
-```bash
+curl -L -o temurin8.zip https://github.com/adoptium/temurin8-binaries/releases/download/jdk8u432-b06/OpenJDK8U-jdk_x64_windows_hotspot_8u432b06.zip
+# unzip, then add its bin/ directory to your PATH (or set JAVA_HOME to it)
 curl -L -o maven.zip https://archive.apache.org/dist/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.zip
 # unzip to a folder, then add its bin/ directory to your PATH
 ```
 
 **macOS (Homebrew):**
 ```bash
-brew install openjdk@17 maven
+brew install --cask temurin8
+brew install maven
 ```
 
 **Linux (apt):**
 ```bash
-sudo apt install openjdk-17-jdk maven
+sudo apt install openjdk-8-jdk maven
 ```
+
+> Building or running with a newer JDK on your `PATH` (11, 17, 21, ...) will fail or silently produce bytecode this project doesn't target — make sure `JAVA_HOME`/`PATH` point at a Java **8** install before running `mvn`.
+
+### 2.1 What targeting Java 8 actually changed in the code
+
+This project was first built on Java 17 / Spring Boot 3.2, then retargeted to Java 8 / Spring Boot 2.7.18 once it was confirmed the BRD specifies Java 1.8. That retarget touched:
+
+- **Namespace:** every `jakarta.persistence.*` / `jakarta.servlet.*` import became `javax.persistence.*` / `javax.servlet.*` (Boot 2.x predates Jakarta EE's rename).
+- **Oracle dialect:** Hibernate 5 (bundled with Boot 2.7) has no single version-detecting Oracle dialect like Hibernate 6 does — `application-oracle.properties` uses `org.hibernate.dialect.Oracle10gDialect`, Hibernate's documented dialect for both 10g and 11g.
+- **No Java 9+ language/API features**, since none of these exist on Java 8:
+  - `@Query("""...""")` text blocks (`BillRepository`, `PaymentRepository`, `ScheduledPaymentRepository`) → ordinary concatenated `String`s.
+  - `record` types (`CaptchaChallenge`, `AuthService`'s internal `ChallengeEntry`) → plain classes with explicit getters.
+  - `Map.of(...)` → a small `com.paypilot.util.Maps.of(...)` helper (same varargs call shape, Java 8-compatible).
+  - `List.of(...)` → `Arrays.asList(...)`; `Stream.toList()` → `.collect(Collectors.toList())`; `Optional.isEmpty()` → `!...isPresent()`; `String.isBlank()` → `s.trim().isEmpty()`; `Path.of(...)` → `Paths.get(...)`.
+- **One real behavior fix, not just a mechanical port:** `AddBillRequest.dueDate` (and `periodFrom`/`periodTo`) now carry `@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)`. Spring Boot 3's multipart/`@ModelAttribute` binding parsed a plain `"2026-11-10"` form field into `LocalDate` without it; Spring 5 / Boot 2.7's binder does not, and rejected the field with a 400 until the annotation was added.
+
+None of this changed the REST API contract, the database schema, or any business logic — the full 75-check regression suite (`test/api.test.js`) passes unchanged against the Java 8 build.
 
 ---
 
@@ -259,7 +277,7 @@ Hibernate will auto-create all 5 tables in the `paypilot` schema on first run (`
 
 ### 9.3 Status of this integration
 
-**This has been wired but not yet run against a live Oracle 11g instance** (none was available in the environment this was built in — see §9.1). The configuration follows Oracle's and Hibernate's documented conventions (SID-style JDBC URL, `ojdbc8` which Oracle states supports server 11.2.0.4+, Hibernate's version-detecting `OracleDialect`, and defensive reserved-word auto-quoting for columns like `password`), and the identical layered architecture already proven against H2 means no Java code should need to change. If you hit a startup or DDL error the first time you run with `-Dspring-boot.run.profiles=oracle`, paste it back so it can get fixed.
+**This has been wired and verified as far as it can be without a live Oracle 11g instance.** Running `-Dspring-boot.run.profiles=oracle` in this environment (no Oracle installed here — see §9.1) correctly loads the `ojdbc8` driver and `Oracle10gDialect`, builds the connection URL from the profile, and reaches a real connection attempt — it fails only with Oracle's own `ORA-12505: listener does not currently know of SID`, because no Oracle process is listening on `localhost:1521` in this environment. That confirms the Spring/Hibernate/driver wiring itself is correct; it has not been exercised against an Oracle server that actually accepts the connection and lets Hibernate create the schema. If you hit a *different* error (anything other than a connection/listener error) the first time you run this against your own Oracle 11g instance, paste it back so it can get fixed.
 
 ---
 

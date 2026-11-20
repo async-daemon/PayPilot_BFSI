@@ -1,12 +1,13 @@
 package com.paypilot.controller;
 
+import com.paypilot.util.Maps;
 import com.paypilot.dto.BillView;
 import com.paypilot.dto.Requests.*;
 import com.paypilot.model.Constants;
 import com.paypilot.repository.BillRepository;
 import com.paypilot.security.AuthInterceptor;
 import com.paypilot.service.BillService;
-import jakarta.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,24 +34,24 @@ public class BillController {
         List<String> all = new ArrayList<>();
         all.add("All");
         all.addAll(Constants.BILL_CATEGORIES);
-        return Map.of("categories", all);
+        return Maps.of("categories", all);
     }
 
     @PostMapping
     public ResponseEntity<Map<String, Object>> add(@ModelAttribute AddBillRequest req, HttpServletRequest request) {
         List<BillView> bills = billService.addBill(userId(request), req);
-        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("ok", true, "message", "Bill successfully added", "bills", bills));
+        return ResponseEntity.status(HttpStatus.CREATED).body(Maps.of("ok", true, "message", "Bill successfully added", "bills", bills));
     }
 
     @PutMapping("/{billId}")
     public Map<String, Object> update(@PathVariable String billId, @RequestBody EditBillRequest req, HttpServletRequest request) {
-        return Map.of("ok", true, "bill", billService.updateBill(userId(request), billId, req));
+        return Maps.of("ok", true, "bill", billService.updateBill(userId(request), billId, req));
     }
 
     @DeleteMapping("/{billId}")
     public Map<String, Object> delete(@PathVariable String billId, HttpServletRequest request) {
         billService.deleteBill(userId(request), billId);
-        return Map.of("ok", true, "message", "Bill deleted successfully");
+        return Maps.of("ok", true, "message", "Bill deleted successfully");
     }
 
     @GetMapping("/overview")
@@ -65,9 +66,9 @@ public class BillController {
         List<BillView> bills = billService.overview(userId(request), category, fromDate, toDate, status, search);
         List<Map<String, Object>> counts = new ArrayList<>();
         for (BillRepository.CategoryCount c : billService.countByCategory(userId(request))) {
-            counts.add(Map.of("bill_category", c.getCategory(), "count", c.getCount()));
+            counts.add(Maps.of("bill_category", c.getCategory(), "count", c.getCount()));
         }
-        return Map.of("bills", bills, "counts", counts);
+        return Maps.of("bills", bills, "counts", counts);
     }
 
     @GetMapping("/upcoming-overdue")
@@ -81,7 +82,7 @@ public class BillController {
         if ("overdue_desc".equals(sort)) {
             bills.sort((a, b) -> Integer.compare(b.getOverdueDays(), a.getOverdueDays()));
         }
-        return Map.of("bills", bills);
+        return Maps.of("bills", bills);
     }
 
     @GetMapping("/snooze-list")
@@ -90,24 +91,24 @@ public class BillController {
         @RequestParam(required = false) String search,
         HttpServletRequest request
     ) {
-        return Map.of("bills", billService.snoozeOrMarkPaidList(userId(request), category, search));
+        return Maps.of("bills", billService.snoozeOrMarkPaidList(userId(request), category, search));
     }
 
     @PostMapping("/{billId}/snooze")
     public Map<String, Object> snooze(@PathVariable String billId, @RequestBody SnoozeRequest req, HttpServletRequest request) {
         BillView bill = billService.snoozeBill(userId(request), billId, req.getUntilDate());
-        return Map.of("ok", true, "message", bill.getBillName() + " bill successfully snoozed!", "bill", bill);
+        return Maps.of("ok", true, "message", bill.getBillName() + " bill successfully snoozed!", "bill", bill);
     }
 
     @PostMapping("/{billId}/mark-paid")
     public Map<String, Object> markPaid(@PathVariable String billId, @RequestBody(required = false) MarkPaidRequest req, HttpServletRequest request) {
         BillView bill = billService.markPaid(userId(request), billId, req);
-        return Map.of("ok", true, "message", bill.getBillName() + " bill successfully paid!", "bill", bill);
+        return Maps.of("ok", true, "message", bill.getBillName() + " bill successfully paid!", "bill", bill);
     }
 
     @PostMapping("/{billId}/pay-now")
     public Map<String, Object> payNow(@PathVariable String billId, @RequestBody PayNowRequest req, HttpServletRequest request) {
         BillView bill = billService.payNow(userId(request), billId, req);
-        return Map.of("ok", true, "message", "Payment successful", "bill", bill);
+        return Maps.of("ok", true, "message", "Payment successful", "bill", bill);
     }
 }

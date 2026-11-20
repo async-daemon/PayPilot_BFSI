@@ -1,5 +1,6 @@
 package com.paypilot.service;
 
+import com.paypilot.util.Maps;
 import com.paypilot.dto.ReminderView;
 import com.paypilot.dto.Requests.ReminderRequest;
 import com.paypilot.model.Constants;
@@ -38,7 +39,7 @@ public class ReminderService {
         reminder.setNotificationPreference(req.getNotificationPreference() != null ? req.getNotificationPreference() : (existing != null ? existing.getNotificationPreference() : "Email"));
         reminder.setRecurring(Boolean.TRUE.equals(req.getIsRecurring()));
         reminderRepository.save(reminder);
-        return Map.of("ok", true, "message", "Reminder settings updated!!", "reminder", new ReminderView(reminder));
+        return Maps.of("ok", true, "message", "Reminder settings updated!!", "reminder", new ReminderView(reminder));
     }
 
     public ReminderView getReminder(String userId, String billId) {

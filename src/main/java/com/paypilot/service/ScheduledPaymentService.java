@@ -1,5 +1,6 @@
 package com.paypilot.service;
 
+import com.paypilot.util.Maps;
 import com.paypilot.dto.Requests.ModifyScheduleRequest;
 import com.paypilot.dto.Requests.ScheduleRequest;
 import com.paypilot.dto.ScheduledPaymentView;
@@ -35,7 +36,7 @@ public class ScheduledPaymentService {
 
     public Map<String, Object> schedulePayment(String userId, String billId, ScheduleRequest req) {
         Bill bill = billService.getOwnedBill(userId, billId);
-        if (req.getPayeeName() == null || req.getPayeeName().isBlank() || req.getScheduledDate() == null
+        if (req.getPayeeName() == null || req.getPayeeName().trim().isEmpty() || req.getScheduledDate() == null
             || req.getAmount() == null || req.getPaymentMode() == null) {
             throw ApiException.badRequest("Payee name, payment mode, scheduled date and amount are required.");
         }
@@ -61,7 +62,7 @@ public class ScheduledPaymentService {
         sp.setStatus("Scheduled");
         scheduledPaymentRepository.save(sp);
 
-        return Map.of("ok", true, "message", bill.getBillName() + " scheduled for payment!!", "scheduled", toView(sp, bill));
+        return Maps.of("ok", true, "message", bill.getBillName() + " scheduled for payment!!", "scheduled", toView(sp, bill));
     }
 
     public List<ScheduledPaymentView> listScheduled(String userId, String category, LocalDate fromDate, LocalDate toDate) {
@@ -78,7 +79,7 @@ public class ScheduledPaymentService {
         }
         sp.setStatus("Cancelled");
         scheduledPaymentRepository.save(sp);
-        return Map.of("ok", true, "message", "Schedule Payment of " + bill.getBillName() + " Cancelled!", "scheduled", toView(sp, bill));
+        return Maps.of("ok", true, "message", "Schedule Payment of " + bill.getBillName() + " Cancelled!", "scheduled", toView(sp, bill));
     }
 
     public Map<String, Object> modify(String userId, String scheduledPaymentId, ModifyScheduleRequest req) {
@@ -90,7 +91,7 @@ public class ScheduledPaymentService {
         }
         sp.setScheduledDate(req.getScheduledDate());
         scheduledPaymentRepository.save(sp);
-        return Map.of("ok", true, "message", "Schedule Payment Date Changed!!", "scheduled", toView(sp, bill));
+        return Maps.of("ok", true, "message", "Schedule Payment Date Changed!!", "scheduled", toView(sp, bill));
     }
 
     private ScheduledPaymentView toView(ScheduledPayment sp, Bill bill) {

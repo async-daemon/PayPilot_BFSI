@@ -1,6 +1,7 @@
 package com.paypilot.dto;
 
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
@@ -66,6 +67,10 @@ public class Requests {
     public static class AddBillRequest {
         private String billName;
         private String billCategory;
+        // Explicit ISO format: bound from a multipart form field (plain string,
+        // no Jackson involved), and Spring 5/Boot 2's default WebConversionService
+        // doesn't reliably parse java.time.LocalDate from a form field without it.
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         private LocalDate dueDate;
         private Double amount;
         private String reminderFrequency;
@@ -73,7 +78,9 @@ public class Requests {
         private Boolean isRecurring;
         private String loanType;
         private Double totalLoanAmount;
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         private LocalDate periodFrom;
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         private LocalDate periodTo;
         private MultipartFile attachment;
     }

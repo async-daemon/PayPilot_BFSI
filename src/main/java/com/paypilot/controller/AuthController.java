@@ -1,11 +1,12 @@
 package com.paypilot.controller;
 
+import com.paypilot.util.Maps;
 import com.paypilot.dto.CaptchaChallenge;
 import com.paypilot.dto.Requests.*;
 import com.paypilot.security.AuthInterceptor;
 import com.paypilot.service.ApiException;
 import com.paypilot.service.AuthService;
-import jakarta.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -37,13 +38,13 @@ public class AuthController {
     public ResponseEntity<Map<String, Object>> verifyScreen(@RequestBody VerifyScreenRequest req) {
         authService.verifyChallenge(req.getUserId(), req.getAnswer());
         String otp = authService.issueLoginOtp(req.getUserId());
-        return ResponseEntity.ok(Map.of("message", "Screen Verification Successful!!", "devOtp", otp));
+        return ResponseEntity.ok(Maps.of("message", "Screen Verification Successful!!", "devOtp", otp));
     }
 
     @PostMapping("/verify-otp")
     public ResponseEntity<Map<String, Object>> verifyOtp(@RequestBody VerifyOtpRequest req) {
         authService.verifyLoginOtp(req.getUserId(), req.getOtp());
-        return ResponseEntity.ok(Map.of("message", "OTP Verified!"));
+        return ResponseEntity.ok(Maps.of("message", "OTP Verified!"));
     }
 
     @PostMapping("/login")
@@ -54,38 +55,38 @@ public class AuthController {
     @PostMapping("/forgot/request")
     public ResponseEntity<Map<String, Object>> forgotRequest(@RequestBody ForgotRequestRequest req) {
         String otp = authService.requestPasswordReset(req.getUserId(), req.getEmail());
-        return ResponseEntity.ok(Map.of("message", "OTP sent to your registered email id", "devOtp", otp));
+        return ResponseEntity.ok(Maps.of("message", "OTP sent to your registered email id", "devOtp", otp));
     }
 
     @PostMapping("/forgot/verify")
     public ResponseEntity<Map<String, Object>> forgotVerify(@RequestBody ForgotVerifyRequest req) {
         authService.verifyPasswordResetOtp(req.getUserId(), req.getOtp());
-        return ResponseEntity.ok(Map.of("message", "OTP Verified!"));
+        return ResponseEntity.ok(Maps.of("message", "OTP Verified!"));
     }
 
     @PostMapping("/forgot/reset")
     public ResponseEntity<Map<String, Object>> forgotReset(@RequestBody ForgotResetRequest req) {
         authService.resetPassword(req.getUserId(), req.getNewPassword(), req.getConfirmPassword());
-        return ResponseEntity.ok(Map.of("message", "Password has been updated"));
+        return ResponseEntity.ok(Maps.of("message", "Password has been updated"));
     }
 
     @GetMapping("/me")
     public ResponseEntity<Map<String, Object>> me(HttpServletRequest request) {
         String userId = (String) request.getAttribute(AuthInterceptor.USER_ID_ATTR);
-        return ResponseEntity.ok(Map.of("user", authService.getUser(userId)));
+        return ResponseEntity.ok(Maps.of("user", authService.getUser(userId)));
     }
 
     @GetMapping("/admin/pending-users")
     public ResponseEntity<Map<String, Object>> pendingUsers(HttpServletRequest request) {
         requireAdmin(request);
-        return ResponseEntity.ok(Map.of("users", authService.listPendingUsers()));
+        return ResponseEntity.ok(Maps.of("users", authService.listPendingUsers()));
     }
 
     @PostMapping("/admin/approve/{userId}")
     public ResponseEntity<Map<String, Object>> approve(@PathVariable String userId, HttpServletRequest request) {
         requireAdmin(request);
         authService.approveUser(userId);
-        return ResponseEntity.ok(Map.of("message", "User access approved."));
+        return ResponseEntity.ok(Maps.of("message", "User access approved."));
     }
 
     private void requireAdmin(HttpServletRequest request) {

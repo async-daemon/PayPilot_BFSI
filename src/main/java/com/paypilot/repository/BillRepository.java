@@ -13,16 +13,14 @@ public interface BillRepository extends JpaRepository<Bill, String> {
 
     Optional<Bill> findByBillIdAndUserId(String billId, String userId);
 
-    @Query("""
-        SELECT b FROM Bill b
-        WHERE b.userId = :userId
-          AND (:category IS NULL OR b.billCategory = :category)
-          AND (:fromDate IS NULL OR b.dueDate >= :fromDate)
-          AND (:toDate IS NULL OR b.dueDate <= :toDate)
-          AND (:status IS NULL OR b.paymentStatus = :status)
-          AND (:search IS NULL OR LOWER(b.billName) LIKE LOWER(CONCAT('%', :search, '%')))
-        ORDER BY b.dueDate ASC
-        """)
+    @Query("SELECT b FROM Bill b "
+        + "WHERE b.userId = :userId "
+        + "AND (:category IS NULL OR b.billCategory = :category) "
+        + "AND (:fromDate IS NULL OR b.dueDate >= :fromDate) "
+        + "AND (:toDate IS NULL OR b.dueDate <= :toDate) "
+        + "AND (:status IS NULL OR b.paymentStatus = :status) "
+        + "AND (:search IS NULL OR LOWER(b.billName) LIKE LOWER(CONCAT('%', :search, '%'))) "
+        + "ORDER BY b.dueDate ASC")
     List<Bill> search(
         @Param("userId") String userId,
         @Param("category") String category,

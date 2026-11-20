@@ -1,10 +1,11 @@
 package com.paypilot.controller;
 
+import com.paypilot.util.Maps;
 import com.paypilot.dto.Requests.ReminderRequest;
 import com.paypilot.model.Constants;
 import com.paypilot.security.AuthInterceptor;
 import com.paypilot.service.ReminderService;
-import jakarta.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -25,7 +26,7 @@ public class ReminderController {
 
     @GetMapping("/frequencies")
     public Map<String, Object> frequencies() {
-        return Map.of("frequencies", Constants.REMINDER_FREQUENCIES);
+        return Maps.of("frequencies", Constants.REMINDER_FREQUENCIES);
     }
 
     @GetMapping("/{billId}")

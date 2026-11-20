@@ -1,8 +1,9 @@
 package com.paypilot.controller;
 
+import com.paypilot.util.Maps;
 import com.paypilot.security.AuthInterceptor;
 import com.paypilot.service.PaymentService;
-import jakarta.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -28,7 +29,7 @@ public class PaymentController {
         @RequestParam(required = false) String search,
         HttpServletRequest request
     ) {
-        return Map.of("bills", paymentService.paymentProgress(userId(request), category, search));
+        return Maps.of("bills", paymentService.paymentProgress(userId(request), category, search));
     }
 
     @GetMapping("/overview")
@@ -38,7 +39,7 @@ public class PaymentController {
         @RequestParam(required = false) LocalDate toDate,
         HttpServletRequest request
     ) {
-        return Map.of("bills", paymentService.paymentOverview(userId(request), category, fromDate, toDate));
+        return Maps.of("bills", paymentService.paymentOverview(userId(request), category, fromDate, toDate));
     }
 
     @GetMapping("/history")
@@ -48,6 +49,6 @@ public class PaymentController {
         @RequestParam(required = false) LocalDate toDate,
         HttpServletRequest request
     ) {
-        return Map.of("payments", paymentService.paymentHistory(userId(request), category, fromDate, toDate));
+        return Maps.of("payments", paymentService.paymentHistory(userId(request), category, fromDate, toDate));
     }
 }

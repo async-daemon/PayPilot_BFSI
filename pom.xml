@@ -7,7 +7,14 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.2.5</version>
+    <!--
+      2.7.18 is the last Spring Boot 2.x release (the 3.x line requires Java 17+
+      and the jakarta.* namespace). Pinned here to match the BRD's "Java 1.8/
+      Spring" architecture diagram: this brings in Spring Framework 5.3.x and
+      Hibernate 5.6.x, both of which run on Java 8, and keeps the javax.*
+      namespace that Java 8-era Spring uses.
+    -->
+    <version>2.7.18</version>
     <relativePath/>
   </parent>
 
@@ -18,7 +25,7 @@
   <description>PayPilot - Seamless Bill Management and Hassle Free Payments Solution (BFSI)</description>
 
   <properties>
-    <java.version>17</java.version>
+    <java.version>1.8</java.version>
   </properties>
 
   <dependencies>

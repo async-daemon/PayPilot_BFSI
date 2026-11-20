@@ -1,5 +1,6 @@
 package com.paypilot.service;
 
+import com.paypilot.util.Maps;
 import com.paypilot.dto.CaptchaChallenge;
 import com.paypilot.dto.Requests.*;
 import com.paypilot.dto.UserView;
@@ -42,7 +43,18 @@ public class AuthService {
         this.jwtUtil = jwtUtil;
     }
 
-    private record ChallengeEntry(List<Integer> correctIds, long expires) {}
+    private static final class ChallengeEntry {
+        private final List<Integer> correctIds;
+        private final long expires;
+
+        private ChallengeEntry(List<Integer> correctIds, long expires) {
+            this.correctIds = correctIds;
+            this.expires = expires;
+        }
+
+        private List<Integer> correctIds() { return correctIds; }
+        private long expires() { return expires; }
+    }
 
     private boolean isExpired(Long expires) {
         return expires == null || System.currentTimeMillis() > expires;
@@ -85,7 +97,7 @@ public class AuthService {
         if (entry == null || isExpired(entry.expires())) {
             throw ApiException.badRequest("Screen Verification Unsuccessful! Try Again");
         }
-        List<Integer> selected = new ArrayList<>(new TreeSet<>(selectedIds == null ? List.of() : selectedIds));
+        List<Integer> selected = new ArrayList<>(new TreeSet<>(selectedIds == null ? Collections.<Integer>emptyList() : selectedIds));
         List<Integer> correct = new ArrayList<>(new TreeSet<>(entry.correctIds()));
         if (!selected.equals(correct)) {
             throw ApiException.badRequest("Screen Verification Unsuccessful! Try Again");
@@ -138,7 +150,7 @@ public class AuthService {
         user.setAdmin(false);
         user.setStatus("pending");
         userRepository.save(user);
-        return Map.of("ok", true, "message", "User Access Successfully Raised!!", "user", new UserView(user));
+        return Maps.of("ok", true, "message", "User Access Successfully Raised!!", "user", new UserView(user));
     }
 
     public Map<String, Object> login(String userId, String password) {
@@ -169,7 +181,7 @@ public class AuthService {
         screenVerified.remove(userId);
         otpVerified.remove(userId);
         String token = jwtUtil.generateToken(user.getUserId(), user.isAdmin());
-        return Map.of("token", token, "user", new UserView(user));
+        return Maps.of("token", token, "user", new UserView(user));
     }
 
     public String requestPasswordReset(String userId, String email) {
@@ -222,7 +234,7 @@ public class AuthService {
     public List<Map<String, Object>> listPendingUsers() {
         List<Map<String, Object>> out = new ArrayList<>();
         for (User u : userRepository.findByStatus("pending")) {
-            out.add(Map.of("user_id", u.getUserId(), "email", u.getEmail(), "created_at", u.getCreatedAt().toString()));
+            out.add(Maps.of("user_id", u.getUserId(), "email", u.getEmail(), "created_at", u.getCreatedAt().toString()));
         }
         return out;
     }
@@ -234,6 +246,6 @@ public class AuthService {
     }
 
     private boolean isBlank(String s) {
-        return s == null || s.isBlank();
+        return s == null || s.trim().isEmpty();
     }
 }
