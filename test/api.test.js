@@ -102,6 +102,7 @@ function minimalPdfBuffer() {
   const adminLogin = await fullLogin('admin', 'Admin@123');
   const adminT = adminLogin.data.token;
   check('admin login succeeds', !!adminT, adminLogin.data);
+  check('admin user has is_admin:true (exact JSON key)', adminLogin.data.user.is_admin === true, adminLogin.data.user);
 
   const pendingList = await req('/auth/admin/pending-users', { token: adminT });
   check('pending list contains the test user', pendingList.data.users.some((u) => u.user_id === TEST_USER), pendingList.data);
@@ -187,6 +188,7 @@ function minimalPdfBuffer() {
   recurringForm.append('isRecurring', 'true');
   const addRecurring = await req('/bills', { method: 'POST', body: recurringForm, isForm: true, token: userToken });
   check('recurring bill creates 3 occurrences', addRecurring.data.bills.length === 3, addRecurring.data.bills.map((b) => b.due_date));
+  check('recurring bill has is_recurring:true (exact JSON key)', addRecurring.data.bills[0].is_recurring === true, addRecurring.data.bills[0]);
 
   const invalidCategoryForm = new FormData();
   invalidCategoryForm.append('billName', 'Bad Cat');
@@ -262,6 +264,7 @@ function minimalPdfBuffer() {
   check('set reminder succeeds', setReminder.status === 200, setReminder.data);
   const getReminder = await req(`/reminders/${netflixBillId}`, { token: userToken });
   check('reminder round-trips correctly', getReminder.data.reminder.custom_message === 'Netflix due' && getReminder.data.reminder.reminder_frequency === 'Monthly', getReminder.data);
+  check('reminder has is_recurring:true (exact JSON key)', getReminder.data.reminder.is_recurring === true, getReminder.data.reminder);
 
   const reminderOnMissingBill = await req('/reminders/non-existent-id', { token: userToken });
   check('reminder for nonexistent bill returns 404', reminderOnMissingBill.status === 404);

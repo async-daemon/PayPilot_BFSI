@@ -1,8 +1,41 @@
-node_modules/
-data/*.db
-data/*.db-journal
-data/*.db-wal
-data/*.db-shm
+# ---- Build output ----
+target/
+*.class
+*.jar
+*.war
+
+# ---- Maven ----
+.mvn/wrapper/maven-wrapper.jar
+mvnw.cmd.log
+
+# ---- Database (H2 file-based DB created at runtime) ----
+data/*.mv.db
+data/*.trace.db
+data/*.lock.db
+
+# ---- Uploaded bill attachments (regenerated at runtime) ----
 uploads/*
 !uploads/.gitkeep
+
+# ---- Environment / secrets ----
 .env
+application-local.properties
+application-secrets.properties
+
+# ---- IDE ----
+.idea/
+*.iml
+*.iws
+.vscode/
+.classpath
+.project
+.settings/
+bin/
+
+# ---- OS ----
+.DS_Store
+Thumbs.db
+
+# ---- Logs ----
+*.log
+logs/
