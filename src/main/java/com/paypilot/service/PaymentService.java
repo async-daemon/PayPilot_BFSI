@@ -25,8 +25,7 @@ public class PaymentService {
     }
 
     public List<Map<String, Object>> paymentProgress(String userId, String category, String search) {
-        String cat = (category == null || category.equals("All")) ? null : category;
-        List<Bill> bills = billRepository.search(userId, cat, null, null, null, search);
+        List<Bill> bills = billRepository.search(userId, normalizeCategory(category), null, null, null, blankToNull(search));
         return bills.stream().map(bill -> {
             double paid = paymentRepository.totalPaidForBill(bill.getBillId());
             int percent = bill.getAmount() > 0 ? (int) Math.min(100, Math.round((paid / bill.getAmount()) * 100)) : 0;
@@ -48,8 +47,7 @@ public class PaymentService {
     }
 
     public List<Map<String, Object>> paymentOverview(String userId, String category, LocalDate fromDate, LocalDate toDate) {
-        String cat = (category == null || category.equals("All")) ? null : category;
-        List<Bill> bills = billRepository.search(userId, cat, fromDate, toDate, null, null);
+        List<Bill> bills = billRepository.search(userId, normalizeCategory(category), fromDate, toDate, null, null);
         LocalDate today = LocalDate.now();
         return bills.stream().map(bill -> {
             String status = Constants.STATUS_PAID.equals(bill.getPaymentStatus())
@@ -67,7 +65,15 @@ public class PaymentService {
     }
 
     public List<PaymentView> paymentHistory(String userId, String category, LocalDate fromDate, LocalDate toDate) {
-        String cat = (category == null || category.equals("All")) ? null : category;
-        return paymentRepository.listForUser(userId, cat, fromDate, toDate);
+        return paymentRepository.listForUser(userId, normalizeCategory(category), fromDate, toDate);
+    }
+
+    private String blankToNull(String s) {
+        return (s == null || s.trim().isEmpty()) ? null : s;
+    }
+
+    private String normalizeCategory(String category) {
+        String c = blankToNull(category);
+        return (c == null || c.equals("All")) ? null : c;
     }
 }

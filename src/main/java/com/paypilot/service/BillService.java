@@ -129,8 +129,7 @@ public class BillService {
     }
 
     public List<BillView> overview(String userId, String category, LocalDate fromDate, LocalDate toDate, String status, String search) {
-        String cat = (category == null || category.equals("All")) ? null : category;
-        List<Bill> bills = billRepository.search(userId, cat, fromDate, toDate, status, search);
+        List<Bill> bills = billRepository.search(userId, normalizeCategory(category), fromDate, toDate, blankToNull(status), blankToNull(search));
         return bills.stream().map(this::decorate).collect(Collectors.toList());
     }
 
@@ -139,8 +138,7 @@ public class BillService {
     }
 
     public List<BillView> upcomingOverdue(String userId, String category, String search) {
-        String cat = (category == null || category.equals("All")) ? null : category;
-        List<Bill> bills = billRepository.search(userId, cat, null, null, null, search);
+        List<Bill> bills = billRepository.search(userId, normalizeCategory(category), null, null, null, blankToNull(search));
         return bills.stream()
             .filter(b -> !Constants.STATUS_PAID.equals(b.getPaymentStatus()))
             .map(this::decorate)
@@ -148,9 +146,26 @@ public class BillService {
     }
 
     public List<BillView> snoozeOrMarkPaidList(String userId, String category, String search) {
-        String cat = (category == null || category.equals("All")) ? null : category;
-        List<Bill> bills = billRepository.search(userId, cat, null, null, null, search);
+        List<Bill> bills = billRepository.search(userId, normalizeCategory(category), null, null, null, blankToNull(search));
         return bills.stream().map(this::decorate).collect(Collectors.toList());
+    }
+
+    /**
+     * The frontend's filter dropdowns/search box submit blank strings (not an
+     * omitted param) to mean "no filter" -- but only LocalDate-typed params get
+     * auto-converted from "" to null by Spring's binder; plain String params
+     * (category/status/search) arrive as a literal "", which previously made
+     * every "(:param IS NULL OR ...)" clause in BillRepository.search() evaluate
+     * to false and silently filtered out every bill. Normalizing here fixes it
+     * for every caller.
+     */
+    private String blankToNull(String s) {
+        return (s == null || s.trim().isEmpty()) ? null : s;
+    }
+
+    private String normalizeCategory(String category) {
+        String c = blankToNull(category);
+        return (c == null || c.equals("All")) ? null : c;
     }
 
     public BillView snoozeBill(String userId, String billId, LocalDate untilDate) {

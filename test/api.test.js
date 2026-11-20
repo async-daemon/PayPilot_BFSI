@@ -221,6 +221,13 @@ function minimalPdfBuffer() {
   check('debt category filter works', debtOverview.data.bills.length === 1 && debtOverview.data.bills[0].loan_type === 'Car Loan');
   const statusFilter = await req('/bills/overview?category=All&status=Not Paid', { token: userToken });
   check('status filter works', statusFilter.data.bills.every((b) => b.payment_status === 'Not Paid'));
+  // Regression: the real manage-bills.js filter form submits fromDate/toDate/status
+  // as present-but-empty params (not omitted) whenever those filters are left blank.
+  // A plain String @RequestParam doesn't get Spring's "" -> null treatment the way a
+  // LocalDate param does, so this previously made every bill vanish from the list
+  // (while the category counts, a separate query, still showed them).
+  const blankFilters = await req('/bills/overview?category=All&fromDate=&toDate=&status=', { token: userToken });
+  check('blank (but present) fromDate/toDate/status filters do not hide bills', blankFilters.data.bills.length === 5, blankFilters.data.bills.length);
 
   // ---------------- UPCOMING/OVERDUE + PAY NOW ----------------
   console.log('=== UPCOMING/OVERDUE + PAY NOW ===');

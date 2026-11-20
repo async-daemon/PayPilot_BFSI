@@ -66,7 +66,7 @@ public class ScheduledPaymentService {
     }
 
     public List<ScheduledPaymentView> listScheduled(String userId, String category, LocalDate fromDate, LocalDate toDate) {
-        String cat = (category == null || category.equals("All")) ? null : category;
+        String cat = (category == null || category.trim().isEmpty() || category.equals("All")) ? null : category;
         return scheduledPaymentRepository.listForUser(userId, cat, fromDate, toDate);
     }
 
